@@ -10,7 +10,10 @@ export default {
         primary: '#FF0000',
         background: '#F8F9FA',
         text: '#333333',
-      }
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
     },
   },
   plugins: [],
