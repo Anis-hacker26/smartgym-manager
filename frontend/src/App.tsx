@@ -6,6 +6,9 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import MembersList from './components/admin/MembersList';
 import AddMember from './components/admin/AddMember';
 import MemberDetail from './components/admin/MemberDetail';
+import BookWellness from './components/member/BookWellness';
+import MyBookings from './components/member/MyBookings';
+import ManageBookings from './components/admin/ManageBookings';
 import { useEffect } from 'react';
 
 function ProtectedRoute({ children, allowedRole }: { children: JSX.Element; allowedRole: 'ADMIN' | 'MEMBER' }) {
@@ -14,10 +17,7 @@ function ProtectedRoute({ children, allowedRole }: { children: JSX.Element; allo
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
       </div>
     );
   }
@@ -54,6 +54,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/member/book-wellness"
+          element={
+            <ProtectedRoute allowedRole="MEMBER">
+              <BookWellness />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/member/my-bookings"
+          element={
+            <ProtectedRoute allowedRole="MEMBER">
+              <MyBookings />
+            </ProtectedRoute>
+          }
+        />
         
         {/* Admin Routes */}
         <Route
@@ -85,6 +101,14 @@ function App() {
           element={
             <ProtectedRoute allowedRole="ADMIN">
               <MemberDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/manage-bookings"
+          element={
+            <ProtectedRoute allowedRole="ADMIN">
+              <ManageBookings />
             </ProtectedRoute>
           }
         />

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import bookingRoutes from './routes/bookingRoutes';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/api/member', memberRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/membership', membershipRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Test route
 app.get('/api/health', (req, res) => {
