@@ -11,13 +11,21 @@ const initTransporter = () => {
     transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false,
+      secure: false, // false for port 587, true for port 465
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      // Gmail specific settings
+      tls: {
+        rejectUnauthorized: false, // Only for development
+        ciphers: 'SSLv3'
+      },
+      debug: true, // Enable debug logging
+      logger: true // Log SMTP traffic
     });
     console.log('✅ Email transporter configured');
+    console.log(`📧 Using SMTP: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}`);
     return true;
   } else {
     console.log('⚠️ Email credentials not configured. Emails will be logged to console only.');
@@ -482,6 +490,7 @@ export const sendOTPEmail = async (email: string, otp: string, name: string): Pr
       console.log(`=================================\n`);
       return true;
     }
+    
     await transporter.sendMail({
       from: `"Kartiki Enterprises" <${process.env.SMTP_USER}>`,
       to: email,
@@ -505,6 +514,7 @@ export const sendWelcomeEmail = async (email: string, name: string): Promise<boo
       console.log(`=================================\n`);
       return true;
     }
+    
     await transporter.sendMail({
       from: `"Kartiki Enterprises" <${process.env.SMTP_USER}>`,
       to: email,
@@ -529,6 +539,7 @@ export const sendMembershipExpiryReminder = async (email: string, name: string, 
       console.log(`=================================\n`);
       return true;
     }
+    
     const subject = daysRemaining === 7 ? '⚠️ Your Gym Membership Expires in 7 Days' :
                     daysRemaining === 3 ? '⏰ Your Gym Membership Expires in 3 Days' :
                     daysRemaining === 2 ? '⚠️ Your Gym Membership Expires in 2 Days' :
@@ -552,7 +563,6 @@ export const sendMembershipExpiryReminder = async (email: string, name: string, 
 // Send Bulk Email (with XSS protection)
 export const sendBulkEmail = async (email: string, name: string, title: string, message: string): Promise<boolean> => {
   try {
-    // Sanitize all user inputs to prevent XSS attacks
     const sanitizedTitle = sanitizeString(title);
     const sanitizedMessage = sanitizeHtml(message);
     const sanitizedName = sanitizeString(name);
@@ -624,6 +634,7 @@ export const sendBirthdayEmail = async (email: string, name: string, age: number
       console.log(`=================================\n`);
       return true;
     }
+    
     const subject = `🎂 Happy Birthday, ${name}! 🎉`;
     await transporter.sendMail({
       from: `"Kartiki Enterprises" <${process.env.SMTP_USER}>`,
@@ -651,6 +662,7 @@ export const sendRenewalRequestEmail = async (email: string, name: string, planN
       console.log(`=================================\n`);
       return true;
     }
+    
     await transporter.sendMail({
       from: `"Kartiki Enterprises" <${process.env.SMTP_USER}>`,
       to: email,
@@ -675,6 +687,7 @@ export const sendRenewalStatusEmail = async (email: string, name: string, planNa
       console.log(`=================================\n`);
       return true;
     }
+    
     await transporter.sendMail({
       from: `"Kartiki Enterprises" <${process.env.SMTP_USER}>`,
       to: email,
@@ -699,6 +712,7 @@ export const sendFinalWarningEmail = async (email: string, name: string, expiryD
       console.log(`=================================\n`);
       return true;
     }
+    
     await transporter.sendMail({
       from: `"Kartiki Enterprises" <${process.env.SMTP_USER}>`,
       to: email,
@@ -723,6 +737,7 @@ export const sendBookingConfirmationEmail = async (email: string, name: string, 
       console.log(`=================================\n`);
       return true;
     }
+    
     await transporter.sendMail({
       from: `"Kartiki Enterprises" <${process.env.SMTP_USER}>`,
       to: email,
@@ -747,6 +762,7 @@ export const sendCancellationEmail = async (email: string, name: string, service
       console.log(`=================================\n`);
       return true;
     }
+    
     await transporter.sendMail({
       from: `"Kartiki Enterprises" <${process.env.SMTP_USER}>`,
       to: email,

@@ -240,6 +240,12 @@ export const cancelBooking = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const memberId = (req as any).memberId;
+    const userType = (req as any).userType;
+    
+    console.log('Cancel Booking Request:');
+    console.log('- Booking ID:', id);
+    console.log('- Member ID from token:', memberId);
+    console.log('- User Type:', userType);
     
     const booking = await Booking.findById(id).populate('serviceId').populate('memberId');
     
@@ -247,18 +253,52 @@ export const cancelBooking = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
     
-    // ✅ SECURITY FIX: Only allow members to cancel their own bookings
-    if (booking.memberId && booking.memberId.toString() !== memberId) {
-      return res.status(403).json({ message: 'You can only cancel your own bookings' });
+    console.log('- Booking memberId:', booking.memberId?._id || booking.memberId);
+    
+    // Check if the booking belongs to the requesting member
+    let isAuthorized = false;
+    
+    // Admin can cancel any booking
+    if (userType === 'admin') {
+      isAuthorized = true;
+      console.log('- Authorized: Admin user');
+    }
+    // Member can only cancel their own bookings
+    else if (booking.memberId) {
+      const bookingMemberIdString = booking.memberId._id?.toString() || booking.memberId.toString();
+      const requestMemberIdString = memberId?.toString();
+      
+      console.log('- Booking Member ID (string):', bookingMemberIdString);
+      console.log('- Request Member ID (string):', requestMemberIdString);
+      
+      if (bookingMemberIdString === requestMemberIdString) {
+        isAuthorized = true;
+        console.log('- Authorized: Member owns this booking');
+      } else {
+        console.log('- Unauthorized: Member does not own this booking');
+      }
+    }
+    // Guest booking without memberId - only admin can cancel
+    else {
+      console.log('- Guest booking - only admin can cancel');
+      isAuthorized = false;
+    }
+    
+    if (!isAuthorized) {
+      return res.status(403).json({ message: 'You are not authorized to cancel this booking' });
     }
     
     if (booking.status !== 'CONFIRMED') {
-      return res.status(400).json({ message: 'Booking cannot be cancelled' });
+      return res.status(400).json({ message: 'This booking cannot be cancelled (status: ' + booking.status + ')' });
     }
     
+    // Cancel the booking
     booking.status = 'CANCELLED';
     await booking.save();
     
+    console.log('- Booking cancelled successfully');
+    
+    // Send cancellation email if it's a member booking
     const member = booking.memberId as any;
     const service = booking.serviceId as any;
     
@@ -266,11 +306,12 @@ export const cancelBooking = async (req: Request, res: Response) => {
       const dateStr = new Date(booking.bookingDate).toLocaleDateString('en-IN');
       const timeStr = new Date(booking.startTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       await sendCancellationEmail(member.email, member.name, service.name, dateStr, timeStr);
+      console.log('- Cancellation email sent to:', member.email);
     }
     
     res.json({ success: true, message: 'Booking cancelled successfully' });
   } catch (error) {
-    console.error(error);
+    console.error('Error in cancelBooking:', error);
     res.status(500).json({ message: 'Error cancelling booking', error });
   }
 };
