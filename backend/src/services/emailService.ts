@@ -1,6 +1,5 @@
 // backend/src/services/emailService.ts
 import nodemailer from 'nodemailer';
-import DOMPurify from 'isomorphic-dompurify';
 
 // Create transporter
 let transporter: nodemailer.Transporter | null = null;
@@ -33,26 +32,18 @@ const initTransporter = () => {
   }
 };
 
-initTransporter();
-
-// Helper function to sanitize strings for XSS prevention
+// Sanitize string helper for safe HTML email output
 const sanitizeString = (input: string): string => {
-  if (!input) return '';
-  return DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: []
-  });
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .trim();
 };
 
-// Helper function to sanitize HTML content (allows basic formatting)
-const sanitizeHtml = (input: string): string => {
-  if (!input) return '';
-  return DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: ['b', 'i', 'strong', 'em', 'p', 'br', 'ul', 'li', 'span', 'h1', 'h2', 'h3', 'h4', 'div'],
-    ALLOWED_ATTR: ['style', 'class'],
-    ALLOW_DATA_ATTR: false
-  });
-};
+initTransporter();
 
 // OTP Email Template
 const getOTPTemplate = (otp: string, name: string) => {
