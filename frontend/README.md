@@ -1,179 +1,72 @@
-SmartGym Manager - Frontend
-📋 Overview
-SmartGym Manager is a full-featured gym management system frontend built with React, TypeScript, and Tailwind CSS. It provides member and admin interfaces for managing gym operations.
+# 🏋️ SmartGym Manager - Frontend
 
-🚀 Tech Stack
-Technology	Purpose
-React 18 + TypeScript	UI Framework
-Vite	Build Tool
-Tailwind CSS	Styling
-Zustand	State Management
-React Router v6	Routing
-Axios	HTTP Client
-i18next	Internationalization
-Recharts	Charts & Analytics
-Lucide React	Icons
-📁 Project Structure
-text
-frontend/
-├── src/
-│   ├── components/
-│   │   ├── admin/       # Admin dashboard, equipment, bookings, members
-│   │   ├── member/      # Member dashboard, profile, bookings, renewal
-│   │   ├── auth/        # Login, OTP authentication
-│   │   └── common/      # Sidebar, loaders, error boundaries
-│   ├── store/           # Zustand state management
-│   ├── config/          # Axios, i18n configuration
-│   ├── hooks/           # Custom React hooks
-│   ├── types/           # TypeScript definitions
-│   └── utils/           # Helper functions
-├── public/
-├── .env.example
-├── package.json
-├── tailwind.config.js
-├── tsconfig.json
-└── vite.config.ts
-⚙️ Installation & Setup
-Prerequisites
-Node.js v18+
+> A modern, full-featured gym management system frontend built with React, TypeScript, and Tailwind CSS.
 
-Backend API running (see backend README)
+## 📋 Table of Contents
 
-Steps
-bash
-# 1. Clone repository
-git clone https://github.com/yourusername/smartgym-manager.git
-cd smartgym-manager/frontend
+- [Overview](#-overview)
+- [Tech Stack](#-tech-stack)
+- [Features](#-features)
+- [Project Structure](#-project-structure)
+- [Installation](#-installation)
+- [Environment Variables](#-environment-variables)
+- [Available Scripts](#-available-scripts)
+- [API Integration](#-api-integration)
+- [Deployment](#-deployment)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-# 2. Install dependencies
-npm install
+---
 
-# 3. Setup environment variables
-cp .env.example .env
+## 📖 Overview
 
-# 4. Update .env with your API URL
-# VITE_API_URL=http://localhost:5000
+SmartGym Manager provides both **Member** and **Admin** interfaces for managing gym operations including memberships, equipment, bookings, wellness services, and notifications.
 
-# 5. Start development server
-npm run dev
+- **Member Portal**: OTP login, view equipment, book wellness services, request renewals, manage profile
+- **Admin Portal**: Dashboard analytics, member management, equipment CRUD, booking management, renewal approvals, admin management
 
-# 6. Build for production
-npm run build
-📱 Features
-Member Portal
-Authentication: OTP-based login via email
+---
 
-Dashboard: Membership status, bookings overview
+## 🛠️ Tech Stack
 
-Wellness Services: Book spa services (Fri/Sat only)
+| Technology | Purpose |
+|------------|---------|
+| **React 18** | UI Framework |
+| **TypeScript** | Type Safety |
+| **Vite** | Build Tool |
+| **Tailwind CSS** | Styling |
+| **Zustand** | State Management |
+| **React Router v6** | Routing |
+| **Axios** | HTTP Client |
+| **i18next** | Internationalization |
+| **Recharts** | Charts & Analytics |
+| **Lucide React** | Icons |
+| **React Hot Toast** | Notifications |
 
-Membership Renewal: Request renewal
+---
 
-Profile Management: Update personal details
+## ✨ Features
 
-Booking History: View past and upcoming bookings
+### 👤 Member Portal
+- 🔐 **Authentication**: OTP-based login via email
+- 📊 **Dashboard**: View membership status, upcoming bookings, quick actions
+- 💆 **Wellness Services**: Book spa services (available on Fri/Sat only)
+- 🔄 **Membership Renewal**: Submit renewal requests
+- 👤 **Profile Management**: Update personal information
+- 📅 **Booking History**: View all past and upcoming bookings
+- 🏋️ **Equipment View**: Browse available gym equipment with images
 
-Equipment View: Browse gym equipment
+### 👑 Admin Portal
+- 📊 **Admin Dashboard**: Real-time statistics, charts, and analytics
+- 👥 **Member Management**: Add, edit, delete members with search/filter
+- 🏋️ **Equipment Management**: Full CRUD with image upload support
+- 📅 **Booking Management**: View, filter, and manage all wellness bookings
+- 🔄 **Renewal Requests**: Approve or reject membership renewals
+- 👤 **Admin Management**: Manage admin users (SUPER_ADMIN only)
+- 📧 **Bulk Notifications**: Send WhatsApp/email notifications to members
+- 📈 **Reports**: Generate detailed reports and analytics
 
-Admin Portal
-Dashboard: Statistics and charts
+---
 
-Member Management: CRUD operations
-
-Equipment Management: CRUD with image uploads
-
-Booking Management: View and manage all bookings
-
-Renewal Requests: Approve/reject renewals
-
-Admin Management: Manage admin users
-
-Notifications: Send bulk WhatsApp/email
-
-Reports: Analytics and reporting
-
-🔧 Available Scripts
-Script	Description
-npm run dev	Start development server
-npm run build	Build for production
-npm run preview	Preview production build
-npm run lint	Run ESLint
-npm run format	Format code with Prettier
-🌐 Internationalization
-Supports English and Marathi languages.
-
-To add a new language, update src/config/i18n.ts.
-
-🔌 API Integration
-Configuration
-API URL is configured via VITE_API_URL environment variable.
-
-Key Endpoints
-Endpoint	Purpose
-/api/auth/*	Login, OTP, logout
-/api/member/*	Member operations
-/api/admin/*	Admin operations
-/api/equipment/*	Equipment management
-/api/bookings/*	Booking management
-/api/renewals/*	Renewal management
-📦 Deployment
-Deploy to Vercel (Recommended)
-bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy
-vercel --prod
-Set these environment variables in Vercel:
-
-VITE_API_URL: Your backend API URL
-
-Deploy to Netlify
-bash
-# Build
-npm run build
-
-# Deploy the 'dist' folder to Netlify
-🐛 Troubleshooting
-Issue	Solution
-API not responding	Check if backend is running and VITE_API_URL is correct
-OTP not received	Check backend email configuration
-Images not loading	Verify backend is serving static files
-Build fails	Delete node_modules and reinstall
-🔒 Security
-❌ NEVER commit .env files to Git
-
-Use environment variables for all secrets
-
-JWT tokens stored in HTTP-only cookies
-
-Protected routes for admin sections
-
-🤝 Contributing
-bash
-# Create feature branch
-git checkout -b feature/your-feature
-
-# Commit changes
-git commit -m "feat: your feature description"
-
-# Push
-git push origin feature/your-feature
-📝 License
-Proprietary - All rights reserved.
-
-📞 Quick Links
-Backend Repository: [Link]
-
-Live Demo: [Link]
-
-Issues: [Link]
-
-Last Updated: June 2026
-
-#### Installation
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/YOUR_USERNAME/smartgym-manager.git
-cd smartgym-manager
+## 📁 Project Structure
