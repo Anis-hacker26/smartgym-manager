@@ -1,6 +1,6 @@
 {
-"version": 2,
-"builds": [
+  "version": 2,
+  "builds": [
     {
       "src": "src/server.ts",
       "use": "@vercel/node",
@@ -25,5 +25,6 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "buildCommand": "npm install && npx tsc"
 }
