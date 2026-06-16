@@ -7,7 +7,6 @@
 - [Overview](#-overview)
 - [Tech Stack](#-tech-stack)
 - [Features](#-features)
-- [Project Structure](#-project-structure)
 
 ---
 
