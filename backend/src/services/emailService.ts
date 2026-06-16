@@ -1,59 +1,112 @@
 // backend/src/services/emailService.ts
 
-// Helper function to send emails via Brevo REST API
-const sendEmail = async (to: string, subject: string, html: string): Promise<boolean> => {
-  try {
-    // 🔑 DEVELOPMENT MODE: If NO API key is set, just log to console
-    // This is for testing without actually sending emails
-    if (!process.env.BREVO_API_KEY) {
-      console.log(`\n=================================`);
-      console.log(`📧 [DEV MODE] Email to: ${to}`);
-      console.log(`📧 Subject: ${subject}`);
-      
-      // Extract and display OTP from HTML (for testing)
-      const otpMatch = html.match(/<div class="otp-code">(\d+)<\/div>/);
-      if (otpMatch) {
-        console.log(`🔑 YOUR OTP IS: ${otpMatch[1]}`);
-      }
-      
-      console.log(`=================================\n`);
-      return true;
-    }
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
 
-    // 🚀 PRODUCTION MODE: Send real email via Brevo API
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'api-key': process.env.BREVO_API_KEY,
+dotenv.config();
+
+// ============================================
+// CREATE TRANSPORTER FOR REAL EMAILS
+// ============================================
+let transporter: nodemailer.Transporter | null = null;
+
+// Check if SMTP credentials exist
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  try {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
-      body: JSON.stringify({
-        sender: {
-          name: 'Perfect Fitness Club',
-          email: 'noreply@brevo.com',
-        },
-        to: [{ email: to }],
-        subject: subject,
-        htmlContent: html,
-      }),
+      tls: {
+        rejectUnauthorized: false,
+      },
+      connectionTimeout: 30000,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Brevo API error:', error);
+    // Verify connection
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('❌ SMTP connection error:', error);
+        console.error('⚠️ Please check your SMTP credentials in .env');
+        transporter = null;
+      } else {
+        console.log('✅ SMTP server ready - Sending REAL emails!');
+        console.log(`📧 From: ${process.env.SMTP_SENDER_EMAIL || process.env.SMTP_USER}`);
+      }
+    });
+  } catch (error) {
+    console.error('❌ Failed to initialize SMTP:', error);
+    transporter = null;
+  }
+} else {
+  console.error('❌ SMTP credentials not configured!');
+  console.error('⚠️ Please set SMTP_USER and SMTP_PASS in .env');
+  console.error('💡 For Gmail, use App Password: https://myaccount.google.com/apppasswords');
+}
+
+// ============================================
+// SEND REAL EMAIL - NO MORE CONSOLE LOGGING
+// ============================================
+const sendEmail = async (to: string, subject: string, html: string): Promise<boolean> => {
+  try {
+    // Check if transporter is ready
+    if (!transporter) {
+      console.error(`❌ Cannot send email to ${to} - SMTP not configured`);
+      console.error(`📧 Would have sent: "${subject}" to ${to}`);
       return false;
     }
 
-    console.log(`✅ Email sent to ${to} via Brevo`);
+    // Validate email
+    if (!to || !to.includes('@')) {
+      console.error(`❌ Invalid email address: ${to}`);
+      return false;
+    }
+
+    const mailOptions = {
+      from: `"${process.env.SMTP_SENDER_NAME || 'Perfect Fitness Club'}" <${process.env.SMTP_SENDER_EMAIL || process.env.SMTP_USER}>`,
+      to: to,
+      subject: subject,
+      html: html,
+      text: html.replace(/<[^>]*>/g, ''), // Plain text version
+    };
+
+    console.log(`📧 Sending REAL email to: ${to}`);
+    console.log(`📧 Subject: ${subject}`);
+
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log(`✅ Email sent successfully to ${to}`);
+    console.log(`📧 Message ID: ${info.messageId}`);
+    
     return true;
-  } catch (error) {
-    console.error('❌ Brevo email error:', error);
+  } catch (error: any) {
+    console.error(`❌ Failed to send email to ${to}:`, error.message);
+    
+    // Helpful error messages
+    if (error.code === 'EAUTH') {
+      console.error('🔑 Authentication failed!');
+      console.error('💡 For Gmail: Use App Password, not regular password');
+      console.error('💡 Get App Password: https://myaccount.google.com/apppasswords');
+    } else if (error.code === 'ESOCKET') {
+      console.error('🌐 Connection error. Check internet and firewall.');
+    } else if (error.code === 'ECONNECTION') {
+      console.error('🔌 Cannot connect to SMTP server. Check SMTP_HOST and SMTP_PORT.');
+    }
+    
     return false;
   }
 };
 
-// Sanitize string helper for safe HTML email output
+// ============================================
+// ALL YOUR EXISTING TEMPLATE FUNCTIONS
+// (Keep all your existing template functions exactly as they are)
+// ============================================
+
+// Sanitize string helper
 const sanitizeString = (input: string): string => {
   if (!input) return '';
   return input
@@ -502,7 +555,9 @@ const getFinalWarningTemplate = (name: string, expiryDate: Date) => {
 `;
 };
 
-// ==================== EXPORTED FUNCTIONS ====================
+// ============================================
+// EXPORTED FUNCTIONS - These send REAL emails
+// ============================================
 
 export const sendOTPEmail = async (email: string, otp: string, name: string): Promise<boolean> => {
   const subject = 'Your OTP Verification Code';
