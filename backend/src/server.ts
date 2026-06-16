@@ -21,6 +21,13 @@ import { startBirthdayJob } from './jobs/birthdayReminderJob';
 const app = express();
 
 // ============================================
+// ✅ FIX: Enable trust proxy for Vercel
+// This tells Express to trust the 'X-Forwarded-For' header set by Vercel's proxy
+// This is required for rate limiting to work correctly behind a proxy
+// ============================================
+app.set('trust proxy', 1); // Trust first proxy (Vercel)
+
+// ============================================
 // VALIDATE ENVIRONMENT VARIABLES
 // ============================================
 const requiredEnvVars = ['JWT_SECRET', 'MONGODB_URI'];
@@ -190,7 +197,7 @@ if (config.nodeEnv !== 'production') {
 }
 
 // ============================================
-// RATE LIMITING
+// RATE LIMITING (Now trust proxy is enabled)
 // ============================================
 if (config.nodeEnv === 'production') {
   app.use('/api/auth', authLimiter);
@@ -335,9 +342,9 @@ if (require.main === module) {
           },
           { $set: { status: 'EXPIRED' } }
         );
-        console.log(` Startup cleanup: ${result.modifiedCount} memberships marked as EXPIRED`);
+        console.log(`✅ Startup cleanup: ${result.modifiedCount} memberships marked as EXPIRED`);
       } catch (error) {
-        console.error(' Startup cleanup error:', error);
+        console.error('❌ Startup cleanup error:', error);
       }
       
       startReminderJobs();
@@ -346,18 +353,18 @@ if (require.main === module) {
       startBirthdayJob();
       
       app.listen(PORT, () => {
-        console.log(` Server running on port ${PORT}`);
-        console.log(` Health check: http://localhost:${PORT}/api/health`);
-        console.log(` Uploads directory: ${uploadsDir}`);
-        console.log(` Environment: ${config.nodeEnv}`);
-        console.log(` Frontend URL: ${config.frontendUrl}`);
-        console.log(` Images available at: http://localhost:${PORT}/uploads/`);
+        console.log(`🚀 Server running on port ${PORT}`);
+        console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+        console.log(`📁 Uploads directory: ${uploadsDir}`);
+        console.log(`🌍 Environment: ${config.nodeEnv}`);
+        console.log(`🔗 Frontend URL: ${config.frontendUrl}`);
+        console.log(`📸 Images available at: http://localhost:${PORT}/uploads/`);
         if (config.nodeEnv !== 'production') {
-          console.log(` Debug images: http://localhost:${PORT}/api/debug/images`);
+          console.log(`🔧 Debug images: http://localhost:${PORT}/api/debug/images`);
         }
       });
     } catch (err) {
-      console.error(' Failed to start server:', err);
+      console.error('❌ Failed to start server:', err);
       process.exit(1);
     }
   }

@@ -1,4 +1,13 @@
+// backend/src/middleware/rateLimiter.ts
 import rateLimit from 'express-rate-limit';
+
+// ✅ FIX: Disable X-Forwarded-For validation for all limiters
+// This is required for Vercel deployment (behind proxy)
+const validateConfig = {
+  validate: {
+    xForwardedForHeader: false, // Disable X-Forwarded-For validation
+  },
+};
 
 // Less strict for development
 export const authLimiter = rateLimit({
@@ -8,6 +17,7 @@ export const authLimiter = rateLimit({
   skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
+  ...validateConfig, // ✅ Added fix
 });
 
 export const apiLimiter = rateLimit({
@@ -19,7 +29,8 @@ export const apiLimiter = rateLimit({
   skip: (req) => {
     // Skip rate limiting for health check in development
     return req.path === '/api/health' && process.env.NODE_ENV === 'development';
-  }
+  },
+  ...validateConfig, // ✅ Added fix
 });
 
 export const otpLimiter = rateLimit({
@@ -28,14 +39,16 @@ export const otpLimiter = rateLimit({
   message: { message: 'Too many OTP requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  ...validateConfig, // ✅ Added fix
 });
-// ADD THIS NEW LIMITER AT THE BOTTOM:
+
 export const otpVerifyLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 attempts per 15 minutes
   message: { message: 'Too many verification attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  ...validateConfig, // ✅ Added fix
 });
 
 export const loginAttemptLimiter = rateLimit({
@@ -44,4 +57,5 @@ export const loginAttemptLimiter = rateLimit({
   message: { message: 'Too many login attempts from this IP' },
   standardHeaders: true,
   legacyHeaders: false,
+  ...validateConfig, // ✅ Added fix
 });
