@@ -47,6 +47,16 @@ if (!fs.existsSync(uploadsDir)) {
 // ============ CORS CONFIGURATION (Must be BEFORE helmet for images) ============
 const allowedOrigins = config.corsOrigins;
 
+if (config.nodeEnv === 'production') {
+  if (allowedOrigins.includes('*')) {
+    console.error('❌ Wildcard CORS origin "*" is not allowed in production');
+    process.exit(1);
+  }
+  if (allowedOrigins.includes('http://localhost') || allowedOrigins.includes('http://127.0.0.1')) {
+    console.warn('⚠️ Localhost origins should not be used in production CORS');
+  }
+  console.log(`✅ CORS allowed origins: ${allowedOrigins.join(', ')}`);
+}
 // Configure CORS with proper image support
 app.use(cors({
   origin: function(origin, callback) {

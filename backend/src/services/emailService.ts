@@ -1,39 +1,61 @@
 // backend/src/services/emailService.ts
-import nodemailer from 'nodemailer';
 
-// Create transporter
-let transporter: nodemailer.Transporter | null = null;
+// Helper function to send emails via Brevo REST API
+const sendEmail = async (to: string, subject: string, html: string): Promise<boolean> => {
+  try {
+    // 🔑 DEVELOPMENT MODE: If NO API key is set, just log to console
+    // This is for testing without actually sending emails
+    if (!process.env.BREVO_API_KEY) {
+      console.log(`\n=================================`);
+      console.log(`📧 [DEV MODE] Email to: ${to}`);
+      console.log(`📧 Subject: ${subject}`);
+      
+      // Extract and display OTP from HTML (for testing)
+      const otpMatch = html.match(/<div class="otp-code">(\d+)<\/div>/);
+      if (otpMatch) {
+        console.log(`🔑 YOUR OTP IS: ${otpMatch[1]}`);
+      }
+      
+      console.log(`=================================\n`);
+      return true;
+    }
 
-// Initialize transporter if credentials are available
-const initTransporter = () => {
-  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false, // false for port 587, true for port 465
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+    // 🚀 PRODUCTION MODE: Send real email via Brevo API
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
       },
-      // Gmail specific settings
-      tls: {
-        rejectUnauthorized: false, // Only for development
-        ciphers: 'SSLv3'
-      },
-      debug: true, // Enable debug logging
-      logger: true // Log SMTP traffic
+      body: JSON.stringify({
+        sender: {
+          name: 'Perfect Fitness Club',
+          email: 'noreply@brevo.com',
+        },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html,
+      }),
     });
-    console.log('✅ Email transporter configured');
-    console.log(`📧 Using SMTP: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}`);
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Brevo API error:', error);
+      return false;
+    }
+
+    console.log(`✅ Email sent to ${to} via Brevo`);
     return true;
-  } else {
-    console.log('⚠️ Email credentials not configured. Emails will be logged to console only.');
+  } catch (error) {
+    console.error('❌ Brevo email error:', error);
     return false;
   }
 };
 
 // Sanitize string helper for safe HTML email output
 const sanitizeString = (input: string): string => {
+  if (!input) return '';
   return input
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -42,18 +64,14 @@ const sanitizeString = (input: string): string => {
     .replace(/'/g, '&#39;')
     .trim();
 };
-// ✅ ADD THIS FUNCTION RIGHT HERE
+
 const sanitizeHtml = (input: string): string => {
   if (!input) return '';
-  // Simple sanitization - removes script tags and dangerous attributes
   return input
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
     .trim();
 };
-
-initTransporter();
-
 
 // OTP Email Template
 const getOTPTemplate = (otp: string, name: string) => {
@@ -486,103 +504,34 @@ const getFinalWarningTemplate = (name: string, expiryDate: Date) => {
 
 // ==================== EXPORTED FUNCTIONS ====================
 
-// Send OTP Email
 export const sendOTPEmail = async (email: string, otp: string, name: string): Promise<boolean> => {
-  try {
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] OTP to: ${email}`);
-      console.log(` Your OTP is: ${otp}`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: 'Your OTP Verification Code',
-      html: getOTPTemplate(otp, name),
-    });
-    console.log(` OTP email sent to ${email}`);
-    return true;
-  } catch (error) {
-    console.error('Error sending OTP email:', error);
-    return false;
-  }
+  const subject = 'Your OTP Verification Code';
+  const html = getOTPTemplate(otp, name);
+  return await sendEmail(email, subject, html);
 };
 
-// Send Welcome Email
 export const sendWelcomeEmail = async (email: string, name: string): Promise<boolean> => {
-  try {
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] Welcome Email to: ${email}`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: 'Welcome to Perfect Fitness Club!',
-      html: getWelcomeTemplate(name),
-    });
-    console.log(` Welcome email sent to ${email}`);
-    return true;
-  } catch (error) {
-    console.error('Error sending welcome email:', error);
-    return false;
-  }
+  const subject = 'Welcome to Perfect Fitness Club!';
+  const html = getWelcomeTemplate(name);
+  return await sendEmail(email, subject, html);
 };
 
-// Send Membership Expiry Reminder
 export const sendMembershipExpiryReminder = async (email: string, name: string, planName: string, daysRemaining: number, expiryDate: Date): Promise<boolean> => {
-  try {
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] Expiry Reminder to: ${email}`);
-      console.log(`Days Remaining: ${daysRemaining}`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    const subject = daysRemaining === 7 ? '⚠️ Your Gym Membership Expires in 7 Days' :
-                    daysRemaining === 3 ? '⏰ Your Gym Membership Expires in 3 Days' :
-                    daysRemaining === 2 ? '⚠️ Your Gym Membership Expires in 2 Days' :
-                    daysRemaining === 1 ? '🚨 Your Gym Membership Expires TOMORROW!' :
-                    '❌ Your Gym Membership Has Expired';
-    
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: subject,
-      html: getExpiryReminderTemplate(name, planName, daysRemaining, expiryDate),
-    });
-    console.log(` Expiry reminder email sent to ${email} (${daysRemaining} days remaining)`);
-    return true;
-  } catch (error) {
-    console.error('Error sending expiry reminder email:', error);
-    return false;
-  }
+  const subject = daysRemaining === 7 ? '⚠️ Your Gym Membership Expires in 7 Days' :
+                  daysRemaining === 3 ? '⏰ Your Gym Membership Expires in 3 Days' :
+                  daysRemaining === 2 ? '⚠️ Your Gym Membership Expires in 2 Days' :
+                  daysRemaining === 1 ? '🚨 Your Gym Membership Expires TOMORROW!' :
+                  '❌ Your Gym Membership Has Expired';
+  const html = getExpiryReminderTemplate(name, planName, daysRemaining, expiryDate);
+  return await sendEmail(email, subject, html);
 };
 
-// Send Bulk Email (with XSS protection)
 export const sendBulkEmail = async (email: string, name: string, title: string, message: string): Promise<boolean> => {
-  try {
-    const sanitizedTitle = sanitizeString(title);
-    const sanitizedMessage = sanitizeHtml(message);
-    const sanitizedName = sanitizeString(name);
-
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] Email to: ${email}`);
-      console.log(`Subject: ${sanitizedTitle}`);
-      console.log(`Message: ${sanitizedMessage}`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    const html = `
+  const sanitizedTitle = sanitizeString(title);
+  const sanitizedMessage = sanitizeHtml(message);
+  const sanitizedName = sanitizeString(name);
+  
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -615,171 +564,44 @@ export const sendBulkEmail = async (email: string, name: string, title: string, 
   </div>
 </body>
 </html>
-    `;
-
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: sanitizedTitle,
-      html,
-    });
-    console.log(` Email sent to ${email}`);
-    return true;
-  } catch (error) {
-    console.error('Error sending email:', error);
-    return false;
-  }
+  `;
+  
+  return await sendEmail(email, sanitizedTitle, html);
 };
 
-// Send Birthday Email
 export const sendBirthdayEmail = async (email: string, name: string, age: number): Promise<boolean> => {
-  try {
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] Birthday Email to: ${email}`);
-      console.log(`Happy Birthday ${name}! 🎂`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    const subject = `🎂 Happy Birthday, ${name}! 🎉`;
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: subject,
-      html: getBirthdayTemplate(name, age),
-    });
-    console.log(`✅ Birthday email sent to ${email} for ${name}`);
-    return true;
-  } catch (error) {
-    console.error('Error sending birthday email:', error);
-    return false;
-  }
+  const subject = `🎂 Happy Birthday, ${name}! 🎉`;
+  const html = getBirthdayTemplate(name, age);
+  return await sendEmail(email, subject, html);
 };
 
-// Send Renewal Request Email
 export const sendRenewalRequestEmail = async (email: string, name: string, planName: string, memberName?: string): Promise<boolean> => {
-  try {
-    const isAdmin = !!memberName;
-    const subject = isAdmin ? 'New Renewal Request Received' : 'Renewal Request Submitted Successfully';
-    
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] ${subject} to: ${email}`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: subject,
-      html: getRenewalRequestTemplate(name, planName, isAdmin, memberName),
-    });
-    console.log(`✅ Renewal request email sent to ${email}`);
-    return true;
-  } catch (error) {
-    console.error('Error sending renewal request email:', error);
-    return false;
-  }
+  const isAdmin = !!memberName;
+  const subject = isAdmin ? 'New Renewal Request Received' : 'Renewal Request Submitted Successfully';
+  const html = getRenewalRequestTemplate(name, planName, isAdmin, memberName);
+  return await sendEmail(email, subject, html);
 };
 
-// Send Renewal Status Email
 export const sendRenewalStatusEmail = async (email: string, name: string, planName: string, status: string, notes?: string): Promise<boolean> => {
-  try {
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] Renewal Status Email to: ${email}`);
-      console.log(`Status: ${status}`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: `Renewal Request ${status === 'APPROVED' ? 'Approved' : 'Rejected'}`,
-      html: getRenewalStatusTemplate(name, planName, status, notes),
-    });
-    console.log(`✅ Renewal status email sent to ${email}`);
-    return true;
-  } catch (error) {
-    console.error('Error sending renewal status email:', error);
-    return false;
-  }
+  const subject = `Renewal Request ${status === 'APPROVED' ? 'Approved' : 'Rejected'}`;
+  const html = getRenewalStatusTemplate(name, planName, status, notes);
+  return await sendEmail(email, subject, html);
 };
 
-// Send Final Warning Email
 export const sendFinalWarningEmail = async (email: string, name: string, expiryDate: Date): Promise<boolean> => {
-  try {
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] FINAL WARNING to: ${email}`);
-      console.log(`Account will be deleted in 2 days`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: '⚠️ URGENT: Your Account Will Be Deleted in 2 Days',
-      html: getFinalWarningTemplate(name, expiryDate),
-    });
-    console.log(`✅ Final warning email sent to ${email}`);
-    return true;
-  } catch (error) {
-    console.error('Error sending final warning email:', error);
-    return false;
-  }
+  const subject = '⚠️ URGENT: Your Account Will Be Deleted in 2 Days';
+  const html = getFinalWarningTemplate(name, expiryDate);
+  return await sendEmail(email, subject, html);
 };
 
-// Send Booking Confirmation Email
 export const sendBookingConfirmationEmail = async (email: string, name: string, serviceName: string, date: string, time: string): Promise<boolean> => {
-  try {
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] Booking Confirmation to: ${email}`);
-      console.log(`Service: ${serviceName} on ${date} at ${time}`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: 'Booking Confirmation - Perfect Fitness Club',
-      html: getBookingConfirmationTemplate(name, serviceName, date, time),
-    });
-    console.log(`✅ Booking confirmation email sent to ${email}`);
-    return true;
-  } catch (error) {
-    console.error('Error sending booking confirmation email:', error);
-    return false;
-  }
+  const subject = 'Booking Confirmation - Perfect Fitness Club';
+  const html = getBookingConfirmationTemplate(name, serviceName, date, time);
+  return await sendEmail(email, subject, html);
 };
 
-// Send Cancellation Email
 export const sendCancellationEmail = async (email: string, name: string, serviceName: string, date: string, time: string): Promise<boolean> => {
-  try {
-    if (!transporter || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log(`\n=================================`);
-      console.log(` [DEV MODE] Cancellation Email to: ${email}`);
-      console.log(`Service: ${serviceName} on ${date} at ${time}`);
-      console.log(`=================================\n`);
-      return true;
-    }
-    
-    await transporter.sendMail({
-      from: `"Perfect Fitness Club" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: 'Booking Cancelled - Perfect Fitness Club',
-      html: getCancellationTemplate(name, serviceName, date, time),
-    });
-    console.log(`✅ Cancellation email sent to ${email}`);
-    return true;
-  } catch (error) {
-    console.error('Error sending cancellation email:', error);
-    return false;
-  }
+  const subject = 'Booking Cancelled - Perfect Fitness Club';
+  const html = getCancellationTemplate(name, serviceName, date, time);
+  return await sendEmail(email, subject, html);
 };

@@ -33,10 +33,10 @@ export const verifyOTP = (identifier: string, otp: string): { valid: boolean; me
     return { valid: false, message: 'OTP has expired. Please request a new one.' };
   }
   
-  if (stored.attempts >= 3) {
+if (stored.attempts >= 3) {
     otpStore.delete(identifier.toLowerCase());
     return { valid: false, message: 'Too many failed attempts. Please request a new OTP.' };
-  }
+}
   
   if (stored.otp !== otp) {
     stored.attempts++;

@@ -19,6 +19,21 @@ if (missingEnvVars.length > 0) {
   }
 }
 
+// ✅ ADDED: Validate MongoDB URI format
+if (process.env.MONGODB_URI) {
+  const isValidMongoUri = process.env.MONGODB_URI.startsWith('mongodb://') || 
+                          process.env.MONGODB_URI.startsWith('mongodb+srv://');
+  
+  if (!isValidMongoUri) {
+    console.error('❌ Invalid MONGODB_URI format. Must start with mongodb:// or mongodb+srv://');
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    } else {
+      console.warn('⚠️ Invalid MongoDB URI format - may cause connection issues');
+    }
+  }
+}
+
 // Validate JWT secret strength
 if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32 && process.env.NODE_ENV === 'production') {
   console.error('❌ JWT_SECRET must be at least 32 characters in production');
@@ -37,7 +52,7 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || 'default_dev_secret_change_me',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   
-  // Email
+  // Email (SMTP - keep as is for now)
   smtp: {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587', 10),

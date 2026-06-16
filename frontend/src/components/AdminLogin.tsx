@@ -28,7 +28,7 @@ export default function AdminLogin() {
   }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (timer > 0) {
       interval = setInterval(() => setTimer(prev => prev - 1), 1000);
     } else if (timer === 0 && resendDisabled) {
@@ -221,7 +221,7 @@ export default function AdminLogin() {
                     required 
                   />
                 </div>
-                <p className="text-xs text-gray-400 mt-2">Use: admin@perfectfitness.com</p>
+                <p className="text-xs text-gray-400 mt-2">Use: admin@gmail.com</p>
               </div>
               <button 
                 type="submit" 

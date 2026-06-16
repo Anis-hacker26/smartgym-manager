@@ -9,12 +9,13 @@ import {
   getMe 
 } from '../controllers/authController';
 import { authenticate, requireMember } from '../middleware/auth';
+import { otpVerifyLimiter } from '../middleware/rateLimiter'; 
 
 const router = express.Router();
 
 // OTP based login (for both Admin & Member)
 router.post('/send-otp', sendOTP);
-router.post('/verify-otp', verifyOTPAndLogin);
+router.post('/verify-otp', otpVerifyLimiter, verifyOTPAndLogin);
 
 // Member routes
 router.post('/member/change-password', authenticate, requireMember, changePassword);
