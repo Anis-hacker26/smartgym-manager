@@ -1,50 +1,137 @@
-# 🏋️ SmartGym Manager - Perfect Fitness Club
+# 🏋️ SmartGym Manager - Frontend
 
-## 📊 Phase 2 Complete: Membership Management Module
+> A modern, full-featured gym management system frontend built with React, TypeScript, and Tailwind CSS.
 
-### ✨ New Features in Phase 2
+## 📋 Table of Contents
 
-#### Admin Features
-- ✅ **Member Management**: Add, view, search, and manage all gym members
-- ✅ **Membership Plans**: Create and manage membership plans with different durations
-- ✅ **Member Details View**: Complete member profile with QR code and membership history
-- ✅ **Membership Renewal**: Renew memberships for existing members
-- ✅ **Payment Recording**: Record cash payments and track payment history
+- [Overview](#-overview)
+- [Tech Stack](#-tech-stack)
+- [Features](#-features)
 
-#### Member Features
-- ✅ **Member Dashboard**: Personalized dashboard showing membership status
-- ✅ **Digital Membership Card**: Beautiful digital card with QR code
-- ✅ **QR Code Integration**: Unique QR code for each member for easy identification
-- ✅ **Membership Status**: Real-time status (Active/Grace Period/Expired)
-- ✅ **Days Remaining**: Countdown of remaining membership days
+---
 
-#### Technical Features
-- ✅ **QR Code Generation**: Automatic QR code generation for each member
-- ✅ **Expiry Logic**: Automatic membership expiry with 2-day grace period
-- ✅ **Role-Based Access**: Separate dashboards for Admin and Members
-- ✅ **Payment Integration**: Razorpay ready for online payments
-- ✅ **Responsive Design**: Mobile-friendly interface
+## 📖 Overview
 
-### 🎯 Membership Plans
+SmartGym Manager provides both **Member** and **Admin** interfaces for managing gym operations including memberships, equipment, bookings, wellness services, and notifications.
 
-| Plan Name | Duration | Price | Savings |
-|-----------|----------|-------|---------|
-| Monthly Plan | 30 days | ₹1,000 | - |
-| Quarterly Plan | 90 days | ₹2,900 | ₹100 |
-| Half-Yearly Plan | 180 days | ₹5,000 | ₹1,000 |
-| Yearly Plan | 365 days | ₹8,000 | ₹4,000 |
-| Couple Plan | 180 days | ₹10,000 | ₹2,000 |
+- **Member Portal**: OTP login, view equipment, book wellness services, request renewals, manage profile
+- **Admin Portal**: Dashboard analytics, member management, equipment CRUD, booking management, renewal approvals, admin management
 
-### 🚀 Quick Start
+---
 
-#### Prerequisites
-- Node.js (v18 or higher)
-- MongoDB (v6 or higher)
-- npm or yarn
+## 🛠️ Tech Stack
 
-#### Installation
+| Technology | Purpose |
+|------------|---------|
+| **React 18** | UI Framework |
+| **TypeScript** | Type Safety |
+| **Vite** | Build Tool |
+| **Tailwind CSS** | Styling |
+| **Zustand** | State Management |
+| **React Router v6** | Routing |
+| **Axios** | HTTP Client |
+| **i18next** | Internationalization |
+| **Recharts** | Charts & Analytics |
+| **Lucide React** | Icons |
+| **React Hot Toast** | Notifications |
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/YOUR_USERNAME/smartgym-manager.git
-cd smartgym-manager
+---
+
+## ✨ Features
+
+### 👤 Member Portal
+- 🔐 **Authentication**: OTP-based login via email
+- 📊 **Dashboard**: View membership status, upcoming bookings, quick actions
+- 💆 **Wellness Services**: Book spa services (available on Fri/Sat only)
+- 🔄 **Membership Renewal**: Submit renewal requests
+- 👤 **Profile Management**: Update personal information
+- 📅 **Booking History**: View all past and upcoming bookings
+- 🏋️ **Equipment View**: Browse available gym equipment with images
+
+### 👑 Admin Portal
+- 📊 **Admin Dashboard**: Real-time statistics, charts, and analytics
+- 👥 **Member Management**: Add, edit, delete members with search/filter
+- 🏋️ **Equipment Management**: Full CRUD with image upload support
+- 📅 **Booking Management**: View, filter, and manage all wellness bookings
+- 🔄 **Renewal Requests**: Approve or reject membership renewals
+- 👤 **Admin Management**: Manage admin users (SUPER_ADMIN only)
+- 📧 **Bulk Notifications**: Send WhatsApp/email notifications to members
+- 📈 **Reports**: Generate detailed reports and analytics
+
+---
+
+## ⚙️ Installation
+
+### Prerequisites
+
+- **Node.js**: v18.0.0 or higher
+- **npm**: v9.0.0 or higher (or yarn/pnpm)
+- **Backend API**: Running backend server (see backend README)
+
+### Setup Steps
+
+# 1. Clone the repository
+git clone https://github.com/yourusername/smartgym-manager.git
+cd smartgym-manager/frontend
+
+# 2. Install dependencies
+npm install
+# or
+yarn install
+
+# 3. Create .env file from example
+cp .env.example .env
+
+# 4. Start development server
+npm run dev
+# or
+yarn dev
+
+🔒 Security
+
+✅ DO:
+Use environment variables for all sensitive data
+Store JWT tokens in HTTP-only cookies
+Validate all user inputs on forms
+Implement proper authentication checks
+Use HTTPS in production
+Keep dependencies updated
+
+❌ DON'T:
+Never commit .env files to Git
+Never hardcode API keys or secrets
+Never expose sensitive data in console logs
+Never trust user input without validation
+
+Security Checklist
+.env files added to .gitignore
+All API calls use HTTPS in production
+Authentication tokens stored securely
+CORS configured properly
+Input validation implemented
+Error messages don't expose sensitive info
+
+🌐 Internationalization (i18n)
+Supports English and Marathi languages.
+
+🏷️ Version History
+Version   	Date	       Changes
+1.0.0	    June 2026   	Initial release
+📊 Quick Stats
+Lines of Code: ~15,000
+Components: 30+
+Pages 12+
+Languages: 2 (English, Marathi)
+API Endpoints: 50+
+Made with ❤️ by the SmartGym Team
+
+Last Updated: June 2026
+
+🔥 Pro Tips
+Development: Use npm run dev for hot reload
+Debugging: Use React DevTools and Redux DevTools
+Performance: Use React.memo() for expensive components
+Styling: Use Tailwind classes for consistency
+State: Use Zustand stores for global state
+
+Happy Coding! 🚀
