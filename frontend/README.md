@@ -64,53 +64,53 @@ SmartGym Manager provides both **Member** and **Admin** interfaces for managing 
 ## 📁 Project Structure
 frontend/
 ├── src/
-│ ├── components/
-│ │ ├── admin/
-│ │ │ ├── AdminDashboard.tsx
-│ │ │ ├── ManageEquipment.tsx
-│ │ │ ├── ManageMembers.tsx
-│ │ │ ├── ManageBookings.tsx
-│ │ │ ├── ManageAdmins.tsx
-│ │ │ ├── RenewalRequests.tsx
-│ │ │ ├── Notifications.tsx
-│ │ │ └── Reports.tsx
-│ │ ├── member/
-│ │ │ ├── MemberDashboard.tsx
-│ │ │ ├── Profile.tsx
-│ │ │ ├── RenewMembership.tsx
-│ │ │ ├── BookWellness.tsx
-│ │ │ ├── MySpaBookings.tsx
-│ │ │ └── ViewEquipment.tsx
-│ │ ├── auth/
-│ │ │ ├── AdminLogin.tsx
-│ │ │ ├── MemberLogin.tsx
-│ │ │ └── OTPLogin.tsx
-│ │ ├── common/
-│ │ │ ├── Sidebar.tsx
-│ │ │ ├── SkeletonLoader.tsx
-│ │ │ ├── ErrorBoundary.tsx
-│ │ │ └── LanguageSwitcher.tsx
-│ │ └── LandingPage.tsx
-│ ├── store/
-│ │ ├── authStore.ts
-│ │ └── membershipStore.ts
-│ ├── config/
-│ │ ├── axios.ts
-│ │ └── i18n.ts
-│ ├── hooks/
-│ │ └── useFormValidation.ts
-│ ├── types/
-│ │ ├── auth.ts
-│ │ ├── membership.ts
-│ │ └── booking.ts
-│ ├── utils/
-│ │ └── constants.ts
-│ ├── App.tsx
-│ ├── main.tsx
-│ ├── index.css
-│ └── App.css
+│   ├── components/
+│   │   ├── admin/
+│   │   │   ├── AdminDashboard.tsx
+│   │   │   ├── ManageEquipment.tsx
+│   │   │   ├── ManageMembers.tsx
+│   │   │   ├── ManageBookings.tsx
+│   │   │   ├── ManageAdmins.tsx
+│   │   │   ├── RenewalRequests.tsx
+│   │   │   ├── Notifications.tsx
+│   │   │   └── Reports.tsx
+│   │   ├── member/
+│   │   │   ├── MemberDashboard.tsx
+│   │   │   ├── Profile.tsx
+│   │   │   ├── RenewMembership.tsx
+│   │   │   ├── BookWellness.tsx
+│   │   │   ├── MySpaBookings.tsx
+│   │   │   └── ViewEquipment.tsx
+│   │   ├── auth/
+│   │   │   ├── AdminLogin.tsx
+│   │   │   ├── MemberLogin.tsx
+│   │   │   └── OTPLogin.tsx
+│   │   ├── common/
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── SkeletonLoader.tsx
+│   │   │   ├── ErrorBoundary.tsx
+│   │   │   └── LanguageSwitcher.tsx
+│   │   └── LandingPage.tsx
+│   ├── store/
+│   │   ├── authStore.ts
+│   │   └── membershipStore.ts
+│   ├── config/
+│   │   ├── axios.ts
+│   │   └── i18n.ts
+│   ├── hooks/
+│   │   └── useFormValidation.ts
+│   ├── types/
+│   │   ├── auth.ts
+│   │   ├── membership.ts
+│   │   └── booking.ts
+│   ├── utils/
+│   │   └── constants.ts
+│   ├── App.tsx
+│   ├── main.tsx
+│   ├── index.css
+│   └── App.css
 ├── public/
-│ └── index.html
+│   └── index.html
 ├── .env.example
 ├── index.html
 ├── package.json
@@ -118,7 +118,6 @@ frontend/
 ├── tsconfig.json
 ├── vite.config.ts
 └── README.md
-
 
 ---
 
