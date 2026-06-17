@@ -22,10 +22,8 @@ const app = express();
 
 // ============================================
 // ✅ FIX: Enable trust proxy for Vercel
-// This tells Express to trust the 'X-Forwarded-For' header set by Vercel's proxy
-// This is required for rate limiting to work correctly behind a proxy
 // ============================================
-app.set('trust proxy', 1); // Trust first proxy (Vercel)
+app.set('trust proxy', 1);
 
 // ============================================
 // VALIDATE ENVIRONMENT VARIABLES
@@ -36,19 +34,16 @@ const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 if (missingEnvVars.length > 0) {
   console.error(`❌ Missing required environment variables: ${missingEnvVars.join(', ')}`);
   if (config.nodeEnv === 'production') {
-    // Don't exit in serverless, just log
     console.error('⚠️ Running in serverless mode with missing env vars');
   }
 }
 
-// Validate JWT secret strength
 if (config.jwtSecret && config.jwtSecret.length < 32 && config.nodeEnv === 'production') {
   console.error('❌ JWT_SECRET must be at least 32 characters in production');
-  // Don't exit in serverless
 }
 
 // ============================================
-// CREATE UPLOADS DIRECTORY (Skip in serverless)
+// CREATE UPLOADS DIRECTORY
 // ============================================
 const uploadsDir = path.join(__dirname, '../public/uploads');
 if (!fs.existsSync(uploadsDir) && config.nodeEnv !== 'production') {
@@ -66,13 +61,10 @@ if (!cached) {
 }
 
 async function connectDB() {
-  // If we have a connection, check if it's still alive
   if (cached.conn) {
-    // Check if connection is still valid
     if (mongoose.connection.readyState === 1) {
       return cached.conn;
     } else {
-      // Connection is dead, clear it
       cached.conn = null;
       cached.promise = null;
     }
@@ -81,7 +73,6 @@ async function connectDB() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      bufferMaxEntries: 0,
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
       family: 4,
@@ -111,7 +102,6 @@ async function connectDB() {
   return cached.conn;
 }
 
-// ✅ Export connectDB so controllers can use it
 export { connectDB };
 
 // ============================================
@@ -120,12 +110,6 @@ export { connectDB };
 const allowedOrigins = config.corsOrigins;
 
 if (config.nodeEnv === 'production') {
-  if (allowedOrigins.includes('*')) {
-    console.error('❌ Wildcard CORS origin "*" is not allowed in production');
-  }
-  if (allowedOrigins.includes('http://localhost') || allowedOrigins.includes('http://127.0.0.1')) {
-    console.warn('⚠️ Localhost origins should not be used in production CORS');
-  }
   console.log(`✅ CORS allowed origins: ${allowedOrigins.join(', ')}`);
 }
 
@@ -142,8 +126,7 @@ app.use(cors({
     }
     
     console.warn(`CORS blocked origin: ${origin}`);
-    const msg = 'CORS policy does not allow access from this origin.';
-    return callback(new Error(msg), false);
+    return callback(new Error('CORS policy does not allow access from this origin.'), false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -189,11 +172,11 @@ app.use((req, res, next) => {
 });
 
 // ============================================
-// STATIC FILE SERVING (Only in development)
+// STATIC FILE SERVING
 // ============================================
 if (config.nodeEnv !== 'production') {
   app.use('/uploads', express.static(uploadsDir, {
-    setHeaders: (res, path, stat) => {
+    setHeaders: (res) => {
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
       res.setHeader('Access-Control-Allow-Origin', config.frontendUrl);
       res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -202,7 +185,7 @@ if (config.nodeEnv !== 'production') {
   }));
   
   app.use('/public/uploads', express.static(uploadsDir, {
-    setHeaders: (res, path, stat) => {
+    setHeaders: (res) => {
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
       res.setHeader('Access-Control-Allow-Origin', config.frontendUrl);
     }
@@ -210,17 +193,14 @@ if (config.nodeEnv !== 'production') {
   
   app.use(express.static(path.join(__dirname, '../public')));
 } else {
-  // Production: Handle favicon to prevent 500 errors
   app.get('/favicon.ico', (req, res) => {
     res.status(204).end();
   });
-  
-  // Note: In production, use cloud storage for uploads
   console.log('⚠️ Production mode: File uploads should use cloud storage');
 }
 
 // ============================================
-// RATE LIMITING (Now trust proxy is enabled)
+// RATE LIMITING
 // ============================================
 if (config.nodeEnv === 'production') {
   app.use('/api/auth', authLimiter);
@@ -253,7 +233,7 @@ import { ensureDbConnection } from './middleware/dbMiddleware';
 app.use('/api', ensureDbConnection);
 
 // ============================================
-// ✅ ROOT ROUTE - API Information
+// ROOT ROUTE
 // ============================================
 app.get('/', (req, res) => {
   res.json({
@@ -288,7 +268,7 @@ app.use('/api/equipment', equipmentRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // ============================================
-// DEBUG ENDPOINT (Development only)
+// DEBUG ENDPOINTS
 // ============================================
 if (config.nodeEnv !== 'production') {
   app.get('/api/debug/images', (req, res) => {
@@ -307,7 +287,7 @@ if (config.nodeEnv !== 'production') {
 }
 
 // ============================================
-// HEALTH CHECK (Updated with connection state)
+// HEALTH CHECK
 // ============================================
 app.get('/api/health', async (req, res) => {
   try {
@@ -322,7 +302,6 @@ app.get('/api/health', async (req, res) => {
     
     let dbStatus = dbStatusMap[dbState] || 'unknown';
     
-    // If disconnected, try to reconnect
     if (dbState === 0 || dbState === 99) {
       console.log('🔄 Health check: DB disconnected, attempting reconnect...');
       try {
@@ -389,7 +368,7 @@ app.get('/api/debug-db', async (req, res) => {
 });
 
 // ============================================
-// 404 HANDLER (Must be last)
+// 404 HANDLER
 // ============================================
 app.use((req, res) => {
   res.status(404).json({
@@ -404,7 +383,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // ============================================
-// EXPORT FOR VERCEL (IMPORTANT!)
+// EXPORT FOR VERCEL
 // ============================================
 export default app;
 
@@ -418,7 +397,6 @@ if (require.main === module) {
     try {
       await connectDB();
       
-      // Run startup cleanup
       try {
         const today = new Date();
         const result = await Membership.updateMany(
