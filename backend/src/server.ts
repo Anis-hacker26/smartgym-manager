@@ -66,30 +66,53 @@ if (!cached) {
 }
 
 async function connectDB() {
+  // If we have a connection, check if it's still alive
   if (cached.conn) {
-    return cached.conn;
+    // Check if connection is still valid
+    if (mongoose.connection.readyState === 1) {
+      return cached.conn;
+    } else {
+      // Connection is dead, clear it
+      cached.conn = null;
+      cached.promise = null;
+    }
   }
 
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 5000,
+      bufferMaxEntries: 0,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      family: 4,
+      maxPoolSize: 10,
+      minPoolSize: 1,
+      connectTimeoutMS: 10000,
+      retryWrites: true,
+      retryReads: true,
     };
 
+    console.log('🔄 Connecting to MongoDB...');
     cached.promise = mongoose.connect(config.mongodbUri, opts)
       .then((mongoose) => {
-        console.log('✅ MongoDB connected');
+        console.log('✅ MongoDB connected successfully');
+        console.log(`📊 Database: ${mongoose.connection.name}`);
+        console.log(`🔗 Connection state: ${mongoose.connection.readyState}`);
         return mongoose;
       })
       .catch((err) => {
-        console.error('❌ MongoDB connection error:', err);
+        console.error('❌ MongoDB connection error:', err.message);
         cached.promise = null;
         throw err;
       });
   }
+  
   cached.conn = await cached.promise;
   return cached.conn;
 }
+
+// ✅ Export connectDB so controllers can use it
+export { connectDB };
 
 // ============================================
 // CORS CONFIGURATION
@@ -222,6 +245,14 @@ import equipmentRoutes from './routes/equipmentRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 
 // ============================================
+// ✅ DB CONNECTION MIDDLEWARE
+// ============================================
+import { ensureDbConnection } from './middleware/dbMiddleware';
+
+// Apply DB connection check to all API routes
+app.use('/api', ensureDbConnection);
+
+// ============================================
 // ✅ ROOT ROUTE - API Information
 // ============================================
 app.get('/', (req, res) => {
@@ -276,25 +307,37 @@ if (config.nodeEnv !== 'production') {
 }
 
 // ============================================
-// HEALTH CHECK
+// HEALTH CHECK (Updated with connection state)
 // ============================================
 app.get('/api/health', async (req, res) => {
   try {
-    // Try to connect to DB for health check
-    await connectDB();
     const dbState = mongoose.connection.readyState;
     const dbStatusMap: { [key: number]: string } = {
       0: 'disconnected',
       1: 'connected',
       2: 'connecting',
-      3: 'disconnecting'
+      3: 'disconnecting',
+      99: 'uninitialized'
     };
-    const dbStatus = dbStatusMap[dbState] || 'unknown';
+    
+    let dbStatus = dbStatusMap[dbState] || 'unknown';
+    
+    // If disconnected, try to reconnect
+    if (dbState === 0 || dbState === 99) {
+      console.log('🔄 Health check: DB disconnected, attempting reconnect...');
+      try {
+        await connectDB();
+        dbStatus = 'connected (reconnected)';
+      } catch (err) {
+        dbStatus = 'reconnection failed';
+      }
+    }
     
     res.json({
       status: 'OK',
       timestamp: new Date().toISOString(),
       database: dbStatus,
+      readyState: dbState,
       uptime: process.uptime(),
       environment: config.nodeEnv,
       apiUrl: config.frontendUrl
@@ -321,6 +364,26 @@ app.get('/api/test-db', async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: error.message
+    });
+  }
+});
+
+// ============================================
+// DEBUG DB ENDPOINT
+// ============================================
+app.get('/api/debug-db', async (req, res) => {
+  try {
+    await connectDB();
+    const collections = await mongoose.connection.db?.listCollections().toArray();
+    res.json({
+      connectionState: mongoose.connection.readyState,
+      databaseName: mongoose.connection.name,
+      collections: collections?.map(c => c.name) || [],
+      modelNames: mongoose.modelNames()
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      error: error.message
     });
   }
 });

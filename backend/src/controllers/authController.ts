@@ -7,10 +7,14 @@ import { generateOTP, storeOTP, verifyOTP, sendOTPEmail as sendOTPService, clear
 import { sendWelcomeEmail } from '../services/emailService';
 import { checkAccountLockout, recordFailedAttempt, resetFailedAttempts } from '../services/lockoutService';
 import { blacklistToken } from '../middleware/tokenBlacklist';
+import { connectDB } from '../server'; // ✅ Import connectDB
 
 // Send OTP based on user type
 export const sendOTP = async (req: Request, res: Response) => {
   try {
+    // ✅ Ensure database connection before any query
+    await connectDB();
+    
     const { identifier, type } = req.body;
     
     if (!identifier || !type) {
@@ -77,6 +81,9 @@ export const sendOTP = async (req: Request, res: Response) => {
 // Verify OTP and Login with Lockout Protection
 export const verifyOTPAndLogin = async (req: Request, res: Response) => {
   try {
+    // ✅ Ensure database connection before any query
+    await connectDB();
+    
     const { identifier, otp, type } = req.body;
 
     if (!identifier || !otp || !type) {
@@ -134,9 +141,9 @@ export const verifyOTPAndLogin = async (req: Request, res: Response) => {
     }
 
     const secret = process.env.JWT_SECRET;
-if (!secret) {
-    throw new Error('JWT_SECRET is not configured in environment variables');
-}
+    if (!secret) {
+      throw new Error('JWT_SECRET is not configured in environment variables');
+    }
     
     const token = jwt.sign(tokenPayload, secret, { expiresIn: '7d' } as jwt.SignOptions);
 
@@ -171,6 +178,9 @@ export const changePassword = async (req: Request, res: Response) => {
 // Get member info
 export const getMemberInfo = async (req: Request, res: Response) => {
   try {
+    // ✅ Ensure database connection before any query
+    await connectDB();
+    
     const memberId = (req as any).memberId;
     const member = await Member.findById(memberId);
     
@@ -213,6 +223,9 @@ export const getMemberInfo = async (req: Request, res: Response) => {
 // Update profile
 export const updateProfile = async (req: Request, res: Response) => {
   try {
+    // ✅ Ensure database connection before any query
+    await connectDB();
+    
     const memberId = (req as any).memberId;
     const { name, firstName, lastName, email, mobileNumber, gender, dateOfBirth, address, location, city, state, postalCode } = req.body;
     
@@ -261,6 +274,9 @@ export const logout = async (req: Request, res: Response) => {
 // Get current user - FIXED VERSION
 export const getMe = async (req: Request, res: Response) => {
   try {
+    // ✅ Ensure database connection before any query
+    await connectDB();
+    
     const token = req.cookies.token;
     if (!token) {
       return res.status(401).json({ message: 'Not authenticated' });
