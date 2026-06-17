@@ -222,6 +222,29 @@ import equipmentRoutes from './routes/equipmentRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 
 // ============================================
+// ✅ ROOT ROUTE - API Information
+// ============================================
+app.get('/', (req, res) => {
+  res.json({
+    message: 'SmartGym Manager API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      members: '/api/members',
+      equipment: '/api/equipment',
+      bookings: '/api/bookings',
+      renewals: '/api/renewals',
+      admin: '/api/admin',
+      membership: '/api/membership',
+      notifications: '/api/notifications'
+    },
+    documentation: 'https://github.com/Anis-hacker26/smartgym-manager'
+  });
+});
+
+// ============================================
 // ROUTES
 // ============================================
 app.use('/api/auth', authRoutes);
@@ -303,7 +326,7 @@ app.get('/api/test-db', async (req, res) => {
 });
 
 // ============================================
-// 404 HANDLER
+// 404 HANDLER (Must be last)
 // ============================================
 app.use((req, res) => {
   res.status(404).json({
