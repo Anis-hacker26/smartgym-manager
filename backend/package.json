@@ -31,7 +31,7 @@
     "@types/cookie-parser": "^1.4.4",
     "@types/bcryptjs": "^2.4.5",
     "@types/jsonwebtoken": "^9.0.3",
-    "@types/multer": "^1.4.7",
+    "@types/multer": "^1.4.4",
     "@types/morgan": "^1.9.5",
     "@types/node-cron": "^3.0.8",
     "typescript": "^5.2.2",
