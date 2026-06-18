@@ -894,7 +894,6 @@ const resources = {
         emailOrMobileRequired: 'कृपया ईमेल किंवा मोबाइल क्रमांक प्रविष्ट करा',
         adminManagementNote: 'प्रशासक व्यवस्थापन टीप',
         note: 'टीप',
-        updateAdmin: 'प्रशासक अद्यतनित करा'
       },
       equipment: {
         subtitle: 'सर्व जिम उपकरणे पहा आणि व्यवस्थापित करा',
