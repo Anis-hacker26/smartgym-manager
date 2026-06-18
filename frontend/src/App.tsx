@@ -20,12 +20,26 @@ import RenewMembership from './components/member/RenewMembership';
 import Profile from './components/member/Profile';
 import ManageAdmins from './components/admin/ManageAdmins';
 import Notifications from './components/admin/Notifications';
+import NotFoundPage from './components/NotFoundPage';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { ToastContainer } from './components/common/Toast';
 
 function ProtectedRoute({ children, allowedRole }: { children: JSX.Element; allowedRole: 'ADMIN' | 'MEMBER' }) {
   const { isAuthenticated, user, isLoading } = useAuthStore();
+  
+  // ✅ Check localStorage as fallback
+  const storedUser = localStorage.getItem('user');
+  let userRole = user?.role;
+  
+  if (!userRole && storedUser) {
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      userRole = parsedUser.role;
+    } catch (e) {
+      console.error('Error parsing stored user');
+    }
+  }
 
   if (isLoading) {
     return (
@@ -38,17 +52,18 @@ function ProtectedRoute({ children, allowedRole }: { children: JSX.Element; allo
     );
   }
 
-  if (!isAuthenticated) {
+  // ✅ Check both auth state and localStorage
+  if (!isAuthenticated && !storedUser) {
     console.log('Not authenticated, redirecting to home');
     return <Navigate to="/" replace />;
   }
 
-  const userRole = user?.role;
-  const isAdminAllowed = allowedRole === 'ADMIN' && (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN');
-  const isMemberAllowed = allowedRole === 'MEMBER' && userRole === 'MEMBER';
+  const finalRole = user?.role || userRole;
+  const isAdminAllowed = allowedRole === 'ADMIN' && (finalRole === 'ADMIN' || finalRole === 'SUPER_ADMIN');
+  const isMemberAllowed = allowedRole === 'MEMBER' && finalRole === 'MEMBER';
   
   if (!isAdminAllowed && !isMemberAllowed) {
-    console.log(`Wrong role. Expected ${allowedRole}, got ${userRole}. Redirecting to home`);
+    console.log(`Wrong role. Expected ${allowedRole}, got ${finalRole}. Redirecting to home`);
     return <Navigate to="/" replace />;
   }
 
@@ -152,6 +167,9 @@ function App() {
               <ManageAdmins />
             </ProtectedRoute>
           } />
+          
+          {/* ✅ 404 Fallback - MUST BE LAST */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
     </ErrorBoundary>
