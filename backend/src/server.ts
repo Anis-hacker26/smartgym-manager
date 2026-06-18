@@ -115,23 +115,24 @@ if (config.nodeEnv === 'production') {
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
+    const allowedOrigins = [
+      'https://smartgym-manager-kb85.vercel.app',
+      'https://smartgym-manager.vercel.app',
+      'https://smartgym-frontend.vercel.app',
+      'http://localhost:5173'
+    ];
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      return callback(null, true);
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
     }
-    
-    if (config.nodeEnv !== 'production' && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
-      return callback(null, true);
-    }
-    
-    console.warn(`CORS blocked origin: ${origin}`);
-    return callback(new Error('CORS policy does not allow access from this origin.'), false);
   },
-  credentials: true,
+  credentials: true, // ✅ MUST be true
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'X-CSRF-Token'],
-  exposedHeaders: ['Set-Cookie'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie'],
+  exposedHeaders: ['Set-Cookie'], // ✅ Important for cross-site
   maxAge: 86400,
 }));
 

@@ -147,13 +147,11 @@ export const verifyOTPAndLogin = async (req: Request, res: Response) => {
     
     const token = jwt.sign(tokenPayload, secret, { expiresIn: '7d' } as jwt.SignOptions);
 
-    // Set secure cookie options
-    const isProduction = process.env.NODE_ENV === 'production';
-    
+    // ✅ FIXED: Set secure cookie options for cross-site requests
     res.cookie('token', token, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax' as const,
+      secure: true, // ✅ MUST be true with sameSite: 'none'
+      sameSite: 'none', // ✅ Required when frontend and backend are on different domains
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
     });
@@ -267,7 +265,13 @@ export const logout = async (req: Request, res: Response) => {
   if (token) {
     blacklistToken(token);
   }
-  res.clearCookie('token');
+  // ✅ Clear cookie with same settings
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    path: '/',
+  });
   res.json({ message: 'Logged out successfully' });
 };
 
