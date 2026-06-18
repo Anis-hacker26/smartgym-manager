@@ -86,10 +86,13 @@ export default function AdminLogin() {
       console.log('Verify OTP response:', response.data);
       
       if (response.data.user) {
+        // ✅ FIX: Set auth state
         setAuth(response.data.user);
         toast.success('Login successful!');
+        
+        // ✅ FIX: Use navigate instead of window.location
         setTimeout(() => {
-          window.location.href = '/admin/dashboard';
+          navigate('/admin/dashboard', { replace: true });
         }, 500);
       }
     } catch (err: any) {
@@ -158,31 +161,31 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
-     <div className="absolute top-8 left-8 cursor-pointer" onClick={() => navigate('/')}>
-  <div className="flex items-center gap-3">
-    <img 
-      src="/logo.png" 
-      alt="Gym Logo" 
-      className="h-10 w-auto object-contain"
-      onError={(e) => {
-        (e.target as HTMLImageElement).style.display = 'none';
-        const parent = (e.target as HTMLImageElement).parentElement;
-        if (parent) {
-          const fallback = document.createElement('div');
-          fallback.className = 'text-red-600';
-          fallback.innerHTML = '💪';
-          fallback.style.fontSize = '28px';
-          parent.appendChild(fallback);
-        }
-      }}
-    />
-    <div>
-      <span className="text-2xl font-bold text-gray-800">Perfect</span>
-      <span className="text-2xl font-bold text-red-600"> Fitness</span>
-      <p className="text-xs text-gray-500">Club</p>
-    </div>
-  </div>
-</div>
+      <div className="absolute top-8 left-8 cursor-pointer" onClick={() => navigate('/')}>
+        <div className="flex items-center gap-3">
+          <img 
+            src="/logo.png" 
+            alt="Gym Logo" 
+            className="h-10 w-auto object-contain"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              const parent = (e.target as HTMLImageElement).parentElement;
+              if (parent) {
+                const fallback = document.createElement('div');
+                fallback.className = 'text-red-600';
+                fallback.innerHTML = '💪';
+                fallback.style.fontSize = '28px';
+                parent.appendChild(fallback);
+              }
+            }}
+          />
+          <div>
+            <span className="text-2xl font-bold text-gray-800">Perfect</span>
+            <span className="text-2xl font-bold text-red-600"> Fitness</span>
+            <p className="text-xs text-gray-500">Club</p>
+          </div>
+        </div>
+      </div>
 
       {/* Login Card */}
       <div className="max-w-md w-full">
@@ -221,7 +224,7 @@ export default function AdminLogin() {
                     required 
                   />
                 </div>
-                <p className="text-xs text-gray-400 mt-2">Use: admin@gmail.com</p>
+                <p className="text-xs text-gray-400 mt-2">Use: anishaprasad124@gmail.com</p>
               </div>
               <button 
                 type="submit" 
