@@ -48,7 +48,7 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
 }
 
 // ============================================
-// SEND EMAIL FUNCTION - FIXED
+// SEND EMAIL FUNCTION - ✅ FIXED
 // ============================================
 const sendEmail = async (to: string, subject: string, html: string): Promise<boolean> => {
   try {
@@ -69,17 +69,17 @@ const sendEmail = async (to: string, subject: string, html: string): Promise<boo
     console.log(`✅ Email sent to ${to}`);
     console.log(`📧 Message ID: ${info.messageId}`);
     return true;
-  } catch (error: any) {
-    console.error(`❌ Failed to send email to ${to}:`, error.message);
+  } catch (err: any) {
+    console.error(`❌ Failed to send email to ${to}:`, err.message);
     
     // Helpful error messages
-    if (error.code === 'EAUTH') {
+    if (err.code === 'EAUTH') {
       console.error('🔑 Authentication failed!');
       console.error('💡 For Gmail: Use App Password, not regular password');
       console.error('💡 Get App Password: https://myaccount.google.com/apppasswords');
-    } else if (error.code === 'ESOCKET') {
+    } else if (err.code === 'ESOCKET') {
       console.error('🌐 Connection error. Check internet and firewall.');
-    } else if (error.code === 'ECONNECTION') {
+    } else if (err.code === 'ECONNECTION') {
       console.error('🔌 Cannot connect to SMTP server. Check SMTP_HOST and SMTP_PORT.');
     }
     return false;
