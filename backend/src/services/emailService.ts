@@ -28,14 +28,13 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     });
 
     // Verify connection
-    transporter.verify((error, success) => {
+     transporter.verify((error) => {
       if (error) {
         console.error('❌ SMTP connection error:', error);
-        console.error('⚠️ Please check your SMTP credentials in .env');
         transporter = null;
       } else {
         console.log('✅ SMTP server ready - Sending REAL emails!');
-        console.log(`📧 From: ${process.env.SMTP_SENDER_EMAIL || process.env.SMTP_USER}`);
+        console.log(`📧 From: ${process.env.SMTP_USER}`);
       }
     });
   } catch (error) {
@@ -44,25 +43,14 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
   }
 } else {
   console.error('❌ SMTP credentials not configured!');
-  console.error('⚠️ Please set SMTP_USER and SMTP_PASS in .env');
-  console.error('💡 For Gmail, use App Password: https://myaccount.google.com/apppasswords');
+  console.log('⚠️ Please set SMTP_USER and SMTP_PASS in .env');
 }
 
-// ============================================
-// SEND REAL EMAIL - NO MORE CONSOLE LOGGING
-// ============================================
 const sendEmail = async (to: string, subject: string, html: string): Promise<boolean> => {
   try {
-    // Check if transporter is ready
     if (!transporter) {
       console.error(`❌ Cannot send email to ${to} - SMTP not configured`);
-      console.error(`📧 Would have sent: "${subject}" to ${to}`);
-      return false;
-    }
-
-    // Validate email
-    if (!to || !to.includes('@')) {
-      console.error(`❌ Invalid email address: ${to}`);
+      console.log(`📧 Would have sent: "${subject}" to ${to}`);
       return false;
     }
 
@@ -71,21 +59,17 @@ const sendEmail = async (to: string, subject: string, html: string): Promise<boo
       to: to,
       subject: subject,
       html: html,
-      text: html.replace(/<[^>]*>/g, ''), // Plain text version
     };
 
-    console.log(`📧 Sending REAL email to: ${to}`);
-    console.log(`📧 Subject: ${subject}`);
-
     const info = await transporter.sendMail(mailOptions);
-    
-    console.log(`✅ Email sent successfully to ${to}`);
+    console.log(`✅ Email sent to ${to}`);
     console.log(`📧 Message ID: ${info.messageId}`);
-    
     return true;
-  } catch (error: any) {
-    console.error(`❌ Failed to send email to ${to}:`, error.message);
-    
+  } catch (error) {
+    console.error(`❌ Failed to send email to ${to}:`, error);
+    return false;
+  }
+};
     // Helpful error messages
     if (error.code === 'EAUTH') {
       console.error('🔑 Authentication failed!');
