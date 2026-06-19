@@ -28,7 +28,7 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     });
 
     // Verify connection
-     transporter.verify((error) => {
+    transporter.verify((error) => {
       if (error) {
         console.error('❌ SMTP connection error:', error);
         transporter = null;
@@ -44,8 +44,12 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
 } else {
   console.error('❌ SMTP credentials not configured!');
   console.log('⚠️ Please set SMTP_USER and SMTP_PASS in .env');
+  console.log('💡 For Gmail, use App Password: https://myaccount.google.com/apppasswords');
 }
 
+// ============================================
+// SEND EMAIL FUNCTION - FIXED
+// ============================================
 const sendEmail = async (to: string, subject: string, html: string): Promise<boolean> => {
   try {
     if (!transporter) {
@@ -65,11 +69,9 @@ const sendEmail = async (to: string, subject: string, html: string): Promise<boo
     console.log(`✅ Email sent to ${to}`);
     console.log(`📧 Message ID: ${info.messageId}`);
     return true;
-  } catch (error) {
-    console.error(`❌ Failed to send email to ${to}:`, error);
-    return false;
-  }
-};
+  } catch (error: any) {
+    console.error(`❌ Failed to send email to ${to}:`, error.message);
+    
     // Helpful error messages
     if (error.code === 'EAUTH') {
       console.error('🔑 Authentication failed!');
@@ -80,7 +82,6 @@ const sendEmail = async (to: string, subject: string, html: string): Promise<boo
     } else if (error.code === 'ECONNECTION') {
       console.error('🔌 Cannot connect to SMTP server. Check SMTP_HOST and SMTP_PORT.');
     }
-    
     return false;
   }
 };
